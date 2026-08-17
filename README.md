@@ -62,19 +62,19 @@ A partir dessa base manual, o plano é evoluir para o que o Zena+ se propõe a s
 ## Imagens do projeto
 
 ### Logo com fundo escuro
-![Logo Zena+ para fundo escuro](imagens/zena-logo-dark-bg.png)
+<img src="imagens/zena-logo-dark-bg.png" alt="Logo Zena+ para fundo escuro" width="360" />
 
 ### Logo com fundo claro
-![Logo Zena+ para fundo claro](imagens/zena-logo-light-bg.png)
+<img src="imagens/zena-logo-light-bg.png" alt="Logo Zena+ para fundo claro" width="360" />
 
 ### Ícone do app
-![Ícone do app Zena+](imagens/zena-logo-icon.png)
+<img src="imagens/zena-logo-icon.png" alt="Ícone do app Zena+" width="140" />
 
-### Board no Figma com planejamento 
-![Print do board de identidade visual no Figma](imagens/print-figma.png)
+### Board no Figma com planejamento
+<img src="imagens/print-figma.png" alt="Print do board de identidade visual no Figma" width="560" />
 
 ### App atual (protótipo)
-![Print do protótipo atual do Zena+](imagens/print-app-atual.png)
+<img src="imagens/print-app-atual.png" alt="Print do protótipo atual do Zena+" width="280" />
 
 ## Pitch — por que o Zena+ existiria no mercado
 
