@@ -59,6 +59,23 @@ A partir dessa base manual, o plano é evoluir para o que o Zena+ se propõe a s
   - `zena-logo-icon.png` (ícone quadrado com fundo laranja e porquinho em creme, para o launcher do app)
 - Board de ideias completo (referências, paleta, tom de voz, nome, tipografia): [ver no Figma](https://www.figma.com/board/SDKAwifTkTvITRMQaGuYjY)
 
+## Imagens do projeto
+
+### Logo com fundo escuro
+![Logo Zena+ para fundo escuro](imagens/zena-logo-dark-bg.png)
+
+### Logo com fundo claro
+![Logo Zena+ para fundo claro](imagens/zena-logo-light-bg.png)
+
+### Ícone do app
+![Ícone do app Zena+](imagens/zena-logo-icon.png)
+
+### Board no Figma com planejamento 
+![Print do board de identidade visual no Figma](imagens/print-figma.png)
+
+### App atual (protótipo)
+![Print do protótipo atual do Zena+](imagens/print-app-atual.png)
+
 ## Pitch — por que o Zena+ existiria no mercado
 
 **Diferencial competitivo:** o Pierre e os apps de organização financeira param no controle do gasto do mês. Apps tradicionais de planilha (Mobills, Organizze) exigem esforço manual de categorização. O Zena+ ocupa o espaço entre os dois: a mesma simplicidade de uso do Pierre, mas com o olhar de longo prazo que nenhum dos dois oferece hoje, construído por quem já trabalha dentro do mercado financeiro e conhece as dores reais desse público.
