@@ -8,33 +8,40 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-Widget build(BuildContext context) {
-  return MaterialApp(
-    title: 'Flutter Demo',
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData(
-      colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFEC7000)),
-      scaffoldBackgroundColor: const Color(0xFFFFF7F2),
-      
-      inputDecorationTheme: const InputDecorationTheme(
-        prefixIconColor: Color(0xFFEC7000),
-        labelStyle: TextStyle(color: Color(0xFF666666)),
-        floatingLabelStyle: TextStyle(color: Color(0xFFEC7000)),
-        border: OutlineInputBorder(),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFEC7000), width: 2.0),
+  Widget build(BuildContext context) {
+    const primaryColor = Color(0xFFEC7000);
+    const backgroundColor = Color(0xFFFFF7F2);
+
+    return MaterialApp(
+      title: 'Zena+',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: backgroundColor,
+        inputDecorationTheme: const InputDecorationTheme(
+          prefixIconColor: primaryColor,
+          labelStyle: TextStyle(color: Color(0xFF666666)),
+          floatingLabelStyle: TextStyle(color: primaryColor),
+          border: OutlineInputBorder(),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.grey),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: primaryColor, width: 2.0),
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryColor,
+            foregroundColor: Colors.white,
+            shape: const StadiumBorder(),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+          ),
         ),
       ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFEC7000), 
-          foregroundColor: Color(0xFFFFF7F2),     
-        ),
-      ),
-    ),
-    home: const MyHomePage(),
-  );
-}
+      home: const MyHomePage(),
+    );
+  }
 }
 
 class Gasto {
@@ -97,14 +104,12 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFFEC7000),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
+        foregroundColor: Colors.white,
+         title: Row(
           children: [
             Image.asset(
               'assets/zena-logo-dark-bg.png',
               height: 35,
-              errorBuilder: (context, error, stackTrace) =>
-                  const Icon(Icons.store),
             ),
             const SizedBox(width: 10),
           ],
@@ -137,8 +142,8 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
 
               const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 8),
+              const Divider(color: Color(0xFFE0E0E0)),
+              const SizedBox(height: 16),
 
               ListaGastosDisplay(gastos: gastos),
             ],
@@ -148,7 +153,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-
 
 class CamposValoresRow extends StatelessWidget {
   final TextEditingController salarioController;
@@ -173,7 +177,6 @@ class CamposValoresRow extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: 'Salário',
               hintText: '2000.00',
-              border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.attach_money),
             ),
           ),
@@ -186,8 +189,7 @@ class CamposValoresRow extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: 'Nome do gasto',
               hintText: 'Gasolina',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.label_outline),
+              prefixIcon: Icon(Icons.label_outline, color: Color(0xFFEC7000)),
             ),
           ),
         ),
@@ -199,8 +201,7 @@ class CamposValoresRow extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: 'Preço',
               hintText: '160.00',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.attach_money_sharp),
+              prefixIcon: Icon(Icons.attach_money),
             ),
           ),
         ),
@@ -264,22 +265,22 @@ class ResultadoDisplay extends StatelessWidget {
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
+            color: Colors.black87,
           ),
         ),
         const SizedBox(height: 8),
         Text(
           'Saldo Restante: R\$ ${saldoRestante.toStringAsFixed(2)}',
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: saldoRestante >= 0 ? Colors.green : Colors.red,
+            color: Color(0xFF4CAF50),
           ),
         ),
       ],
     );
   }
 }
-
 
 class ListaGastosDisplay extends StatelessWidget {
   final List<Gasto> gastos;
@@ -291,21 +292,23 @@ class ListaGastosDisplay extends StatelessWidget {
     if (gastos.isEmpty) {
       return const Text(
         'Nenhum gasto cadastrado.',
-        style: TextStyle(color: Colors.grey),
+        style: TextStyle(color: Colors.grey, fontSize: 14),
       );
     }
 
     return ListView.builder(
       shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(), 
-      itemCount: gastos.length, 
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: gastos.length,
       itemBuilder: (context, index) {
         final gastoItem = gastos[index];
 
         return Card(
+          color: Colors.white,
+          elevation: 1,
           margin: const EdgeInsets.symmetric(vertical: 4),
           child: ListTile(
-            leading: const Icon(Icons.shopping_cart, color:  Color(0xFFec7000)),
+            leading: const Icon(Icons.shopping_cart, color: Color(0xFFEC7000)),
             title: Text(gastoItem.nome),
             trailing: Text(
               'R\$ ${gastoItem.preco.toStringAsFixed(2)}',
