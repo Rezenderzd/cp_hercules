@@ -16,6 +16,13 @@ String formatarPercentual(double valor) {
   return '${valor.toStringAsFixed(2).replaceAll('.', ',')}%';
 }
 
+String formatarReaisResumido(double valor) {
+  if (valor.abs() >= 1000) {
+    return 'R\$ ${(valor / 1000).toStringAsFixed(1).replaceAll('.', ',')}mil';
+  }
+  return 'R\$ ${valor.toStringAsFixed(0)}';
+}
+
 double? lerValor(String texto) {
   var t = texto.trim().replaceAll('R\$', '').replaceAll(' ', '');
   if (t.isEmpty) return null;

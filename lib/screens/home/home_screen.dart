@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/zena_cores.dart';
+import '../../core/utils/gastos_mensais.dart';
 import '../../models/gasto.dart';
 import '../../services/auth_service.dart';
 import '../../services/financas_repository.dart';
@@ -175,7 +177,10 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  double get _totalGastos => _gastos.fold(0, (soma, item) => soma + item.preco);
+  List<Gasto> get _gastosDoMes => gastosDoMesAtual(_gastos);
+
+  double get _totalGastos =>
+      _gastosDoMes.fold(0, (soma, item) => soma + item.preco);
 
   @override
   Widget build(BuildContext context) {
@@ -219,15 +224,26 @@ class _HomeScreenState extends State<HomeScreen> {
                 ResultadoDisplay(
                   salario: _salario,
                   totalGastos: _totalGastos,
-                  quantidadeGastos: _gastos.length,
+                  quantidadeGastos: _gastosDoMes.length,
                 ),
 
                 const SizedBox(height: 16),
                 const Divider(),
                 const SizedBox(height: 16),
 
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Gastos de ${rotuloMesPorExtenso(DateTime.now())}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: context.zena.textoSecundario,
+                        ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
                 ListaGastosDisplay(
-                  gastos: _gastos,
+                  gastos: _gastosDoMes,
                   onSelecionar: _editarGasto,
                 ),
               ],

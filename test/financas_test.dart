@@ -32,9 +32,29 @@ void main() {
       expect((await repo.listarGastos()).map((g) => g.nome), ['Gasolina']);
     });
 
+    test('salva o salário e registra no histórico do mês atual', () async {
+      await repo.salvarSalario(2000);
+      await repo.salvarSalario(2200);
+
+      final historico = await repo.listarHistoricoSalarios();
+      final agora = DateTime.now();
+
+      expect(historico, hasLength(1));
+      expect(historico.single.valor, 2200);
+      expect(historico.single.mes.year, agora.year);
+      expect(historico.single.mes.month, agora.month);
+    });
+
+    test('limpar apaga também o histórico de salário', () async {
+      await repo.salvarSalario(1000);
+      repo.limpar();
+
+      expect(await repo.listarHistoricoSalarios(), isEmpty);
+    });
+
     test('atualizar um gasto que não existe falha', () {
       expect(
-        repo.atualizarGasto(const Gasto(id: '99', nome: 'x', preco: 1)),
+        repo.atualizarGasto(Gasto(id: '99', nome: 'x', preco: 1)),
         throwsA(isA<FinancasFalha>()),
       );
     });
@@ -60,6 +80,22 @@ void main() {
     test('guarda o id vindo do banco', () {
       final gasto = Gasto.fromMap({'id': 'uuid-1', 'nome': 'Café', 'preco': 1});
       expect(gasto.id, 'uuid-1');
+    });
+
+    test('lê a data de criação enviada pelo Supabase', () {
+      final gasto = Gasto.fromMap({
+        'id': 'uuid-1',
+        'nome': 'Café',
+        'preco': 1,
+        'created_at': '2026-09-15T10:00:00+00:00',
+      });
+      expect(gasto.criadoEm, DateTime.parse('2026-09-15T10:00:00+00:00'));
+    });
+
+    test('sem created_at, usa a hora atual em vez de quebrar', () {
+      final antes = DateTime.now();
+      final gasto = Gasto.fromMap({'id': 'a', 'nome': 'Café', 'preco': 1});
+      expect(gasto.criadoEm.isAfter(antes.subtract(const Duration(seconds: 5))), isTrue);
     });
   });
 }

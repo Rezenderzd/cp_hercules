@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/gasto.dart';
+import '../models/salario_mensal.dart';
 import 'financas_repository.dart';
 
 class SupabaseFinancasRepository implements FinancasRepository {
@@ -11,6 +12,7 @@ class SupabaseFinancasRepository implements FinancasRepository {
 
   static const String _tabelaGastos = 'gastos';
   static const String _tabelaPerfis = 'profiles';
+  static const String _tabelaSalariosMensais = 'salarios_mensais';
 
   static const String _sessaoExpirada =
       'Sua sessão expirou. Saia e entre de novo.';
@@ -38,10 +40,42 @@ class SupabaseFinancasRepository implements FinancasRepository {
   @override
   Future<void> salvarSalario(double valor) {
     return _executar('salvar o salário', () async {
+      final userId = _userId;
+
       await _client.from(_tabelaPerfis).upsert({
-        'id': _userId,
+        'id': userId,
         'salario': valor,
       });
+
+      final agora = DateTime.now();
+      final primeiroDiaDoMes = DateTime(agora.year, agora.month, 1);
+
+      await _client.from(_tabelaSalariosMensais).upsert(
+        {
+          'user_id': userId,
+          'mes': primeiroDiaDoMes.toIso8601String().substring(0, 10),
+          'valor': valor,
+        },
+        onConflict: 'user_id,mes',
+      );
+    });
+  }
+
+  @override
+  Future<List<SalarioMensal>> listarHistoricoSalarios() {
+    return _executar('carregar o histórico de salário', () async {
+      final linhas = await _client
+          .from(_tabelaSalariosMensais)
+          .select()
+          .eq('user_id', _userId)
+          .order('mes', ascending: true);
+
+      return linhas.map<SalarioMensal>((linha) {
+        return SalarioMensal(
+          mes: DateTime.parse('${linha['mes']}'),
+          valor: double.tryParse('${linha['valor']}') ?? 0.0,
+        );
+      }).toList();
     });
   }
 
@@ -132,8 +166,9 @@ class SupabaseFinancasRepository implements FinancasRepository {
             (msg.contains('does not exist') || msg.contains('could not find')));
     if (colunaInexistente) {
       return 'Alguma coluna não existe no Supabase. O app espera '
-          'gastos(id, user_id, nome, preco, created_at) e '
-          'profiles(id, nome, salario). Confira com o script '
+          'gastos(id, user_id, nome, preco, created_at), '
+          'profiles(id, nome, salario) e '
+          'salarios_mensais(id, user_id, mes, valor). Confira com o script '
           'zena_supabase_setup.sql.';
     }
 
@@ -141,9 +176,9 @@ class SupabaseFinancasRepository implements FinancasRepository {
         codigo == 'PGRST205' ||
         msg.contains('could not find the table') ||
         msg.contains('does not exist')) {
-      return 'As tabelas "gastos" e "profiles" não foram encontradas no '
-          'Supabase. Rode o script zena_supabase_setup.sql no SQL Editor '
-          '(se acabou de rodar, aguarde alguns segundos).';
+      return 'Alguma tabela (gastos, profiles ou salarios_mensais) não foi '
+          'encontrada no Supabase. Rode o script zena_supabase_setup.sql no '
+          'SQL Editor (se acabou de rodar, aguarde alguns segundos).';
     }
 
     if (codigo == '42501' ||

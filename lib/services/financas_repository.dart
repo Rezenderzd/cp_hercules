@@ -1,4 +1,5 @@
 import '../models/gasto.dart';
+import '../models/salario_mensal.dart';
 
 class FinancasFalha implements Exception {
   final String mensagem;
@@ -13,6 +14,8 @@ abstract class FinancasRepository {
   Future<double> buscarSalario();
 
   Future<void> salvarSalario(double valor);
+
+  Future<List<SalarioMensal>> listarHistoricoSalarios();
 
   Future<List<Gasto>> listarGastos();
 

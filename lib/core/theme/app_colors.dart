@@ -26,15 +26,4 @@ class AppColors {
 
   static const Color sucesso = Color(0xFF4CAF50);
   static const Color gasto = Colors.redAccent;
-
-  static const List<Color> graficoPaleta = [
-    Color(0xFFEC7000),
-    Color(0xFFCC092F),
-    Color(0xFF3B82F6),
-    Color(0xFF9333EA),
-    Color(0xFFF59E0B),
-    Color(0xFF06B6D4),
-    Color(0xFFEC4899),
-    Color(0xFF64748B),
-  ];
 }

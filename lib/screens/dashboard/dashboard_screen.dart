@@ -2,12 +2,14 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/zena_cores.dart';
+import '../../core/utils/gastos_mensais.dart';
 import '../../core/utils/moeda.dart';
-import '../../core/utils/orcamento_grafico.dart';
 import '../../models/gasto.dart';
+import '../../models/salario_mensal.dart';
 import '../../services/financas_repository.dart';
 import '../../widgets/erro_carga_card.dart';
 import '../../widgets/faixa_titulo.dart';
+import '../../widgets/grafico_salarios_mensais.dart';
 
 class DashboardScreen extends StatefulWidget {
   final FinancasRepository financasRepository;
@@ -19,8 +21,9 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  double _salario = 0.0;
   List<Gasto> _gastos = const [];
+  List<SalarioMensal> _historicoSalarios = const [];
+  double _salarioAtual = 0.0;
   bool _carregando = true;
   String? _erro;
 
@@ -32,12 +35,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _carregar() async {
     try {
-      final salario = await widget.financasRepository.buscarSalario();
       final gastos = await widget.financasRepository.listarGastos();
+      final historicoSalarios =
+          await widget.financasRepository.listarHistoricoSalarios();
+      final salarioAtual = await widget.financasRepository.buscarSalario();
       if (!mounted) return;
       setState(() {
-        _salario = salario;
         _gastos = gastos;
+        _historicoSalarios = historicoSalarios;
+        _salarioAtual = salarioAtual;
         _carregando = false;
         _erro = null;
       });
@@ -71,7 +77,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           const FaixaTitulo(
             titulo: 'Painel',
-            subtitulo: 'Veja como o seu salário se distribui entre os gastos.',
+            subtitulo: 'Veja quanto você gastou em cada mês.',
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
@@ -99,121 +105,148 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return ErroCargaCard(mensagem: _erro!, onTentarDeNovo: _tentarDeNovo);
     }
 
-    if (_salario <= 0) {
-      return _AvisoSemSalario();
-    }
-
-    return _PainelOrcamento(salario: _salario, gastos: _gastos);
-  }
-}
-
-class _AvisoSemSalario extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final cores = context.zena;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: cores.cartao,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Icon(Icons.pie_chart_outline, size: 48, color: cores.textoSecundario),
-          const SizedBox(height: 16),
-          Text(
-            'Informe o seu salário na aba Início para ver o painel.',
-            textAlign: TextAlign.center,
-            style: textTheme.bodyMedium?.copyWith(color: cores.textoSecundario),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PainelOrcamento extends StatelessWidget {
-  final double salario;
-  final List<Gasto> gastos;
-
-  const _PainelOrcamento({required this.salario, required this.gastos});
-
-  @override
-  Widget build(BuildContext context) {
-    final cores = context.zena;
-    final textTheme = Theme.of(context).textTheme;
-    final resultado = calcularOrcamento(salario: salario, gastos: gastos);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (resultado.orcamentoEstourado) ...[
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: cores.cartao,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: cores.alerta),
-            ),
-            child: Text(
-              'Os gastos somam ${formatarReais(gastos.fold<double>(0, (s, g) => s + g.preco))}, '
-              '${formatarReais(resultado.excedente)} a mais que o salário de ${formatarReais(salario)}.',
-              style: TextStyle(color: cores.alerta, fontWeight: FontWeight.w500),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'O gráfico abaixo mostra a proporção de cada gasto sobre o total gasto.',
-            textAlign: TextAlign.center,
-            style: textTheme.bodySmall?.copyWith(color: cores.textoSecundario),
-          ),
-          const SizedBox(height: 16),
-        ] else ...[
-          Text(
-            'Salário: ${formatarReais(salario)}',
-            textAlign: TextAlign.center,
-            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 32),
-        ],
-        SizedBox(
-          height: 240,
-          child: PieChart(
-            PieChartData(
-              sections: [
-                for (final fatia in resultado.fatias)
-                  PieChartSectionData(
-                    value: fatia.valor,
-                    color: fatia.cor,
-                    radius: 90,
-                    title: fatia.percentual >= 6
-                        ? '${fatia.percentual.toStringAsFixed(0)}%'
-                        : '',
-                    titleStyle: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-              ],
-              sectionsSpace: 2,
-              centerSpaceRadius: 48,
-            ),
-          ),
+        _GraficoGastosMensais(
+          key: const Key('grafico_gastos'),
+          gastos: _gastos,
         ),
-        const SizedBox(height: 24),
-        for (final fatia in resultado.fatias) _LinhaLegenda(fatia: fatia),
+        const SizedBox(height: 64),
+        const Divider(),
+        const SizedBox(height: 64),
+        GraficoSalariosMensais(
+          key: const Key('grafico_salarios'),
+          historico: _historicoSalarios,
+          salarioAtual: _salarioAtual,
+        ),
       ],
     );
   }
 }
 
-class _LinhaLegenda extends StatelessWidget {
-  final FatiaOrcamento fatia;
+class _GraficoGastosMensais extends StatelessWidget {
+  final List<Gasto> gastos;
 
-  const _LinhaLegenda({required this.fatia});
+  const _GraficoGastosMensais({super.key, required this.gastos});
+
+  static const _quantidadeMeses = 6;
+
+  @override
+  Widget build(BuildContext context) {
+    final cores = context.zena;
+    final textTheme = Theme.of(context).textTheme;
+    final agora = DateTime.now();
+    final totais = totalGastoPorMes(
+      gastos,
+      quantidadeMeses: _quantidadeMeses,
+      agora: agora,
+    );
+    final maiorValor =
+        totais.fold<double>(0, (m, t) => t.total > m ? t.total : m);
+    final tetoEixoY = maiorValor <= 0 ? 100.0 : maiorValor * 1.2;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Gastos por mês',
+          textAlign: TextAlign.center,
+          style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'O mês atual continua mudando; os anteriores ficam fixos.',
+          textAlign: TextAlign.center,
+          style: textTheme.bodySmall?.copyWith(color: cores.textoSecundario),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 260,
+          child: BarChart(
+            BarChartData(
+              maxY: tetoEixoY,
+              barGroups: [
+                for (var i = 0; i < totais.length; i++)
+                  BarChartGroupData(
+                    x: i,
+                    barRods: [
+                      BarChartRodData(
+                        toY: totais[i].total,
+                        color: mesmoMesEAno(totais[i].mes, agora)
+                            ? cores.marca
+                            : cores.borda,
+                        width: 22,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ],
+                  ),
+              ],
+              gridData: FlGridData(
+                drawVerticalLine: false,
+                horizontalInterval: tetoEixoY / 4,
+                getDrawingHorizontalLine: (_) => FlLine(
+                  color: cores.divisor,
+                  strokeWidth: 1,
+                ),
+              ),
+              borderData: FlBorderData(show: false),
+              titlesData: FlTitlesData(
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 44,
+                    interval: tetoEixoY / 4,
+                    getTitlesWidget: (valor, meta) => Text(
+                      formatarReaisResumido(valor),
+                      style: TextStyle(fontSize: 10, color: cores.textoSecundario),
+                    ),
+                  ),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (valor, meta) {
+                      final indice = valor.toInt();
+                      if (indice < 0 || indice >= totais.length) {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          rotuloMesAbreviado(totais[indice].mes),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: cores.textoSecundario,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        for (final total in totais.reversed)
+          _LinhaMes(total: total, ehMesAtual: mesmoMesEAno(total.mes, agora)),
+      ],
+    );
+  }
+}
+
+class _LinhaMes extends StatelessWidget {
+  final TotalMensal total;
+  final bool ehMesAtual;
+
+  const _LinhaMes({required this.total, required this.ehMesAtual});
 
   @override
   Widget build(BuildContext context) {
@@ -227,21 +260,24 @@ class _LinhaLegenda extends StatelessWidget {
           Container(
             width: 12,
             height: 12,
-            decoration: BoxDecoration(color: fatia.cor, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(fatia.nome, style: textTheme.bodyMedium),
-          ),
-          Text(
-            formatarPercentual(fatia.percentual),
-            style: textTheme.bodyMedium?.copyWith(
-              color: cores.textoSecundario,
+            decoration: BoxDecoration(
+              color: ehMesAtual ? cores.marca : cores.borda,
+              shape: BoxShape.circle,
             ),
           ),
           const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              ehMesAtual
+                  ? '${rotuloMesPorExtenso(total.mes)} (em andamento)'
+                  : rotuloMesPorExtenso(total.mes),
+              style: textTheme.bodyMedium?.copyWith(
+                fontWeight: ehMesAtual ? FontWeight.w700 : FontWeight.w400,
+              ),
+            ),
+          ),
           Text(
-            formatarReais(fatia.valor),
+            formatarReais(total.total),
             style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
         ],
