@@ -20,16 +20,30 @@ List<TotalMensal> totalGastoPorMes(
   List<Gasto> gastos, {
   int quantidadeMeses = 6,
   DateTime? agora,
+  double? Function(DateTime mes)? valorFixoDoMes,
 }) {
   final referencia = agora ?? DateTime.now();
 
   return [
     for (var indice = quantidadeMeses - 1; indice >= 0; indice--)
-      _totalDoMes(gastos, DateTime(referencia.year, referencia.month - indice)),
+      _totalDoMes(
+        gastos,
+        DateTime(referencia.year, referencia.month - indice),
+        valorFixoDoMes,
+      ),
   ];
 }
 
-TotalMensal _totalDoMes(List<Gasto> gastos, DateTime mes) {
+TotalMensal _totalDoMes(
+  List<Gasto> gastos,
+  DateTime mes,
+  double? Function(DateTime mes)? valorFixoDoMes,
+) {
+  final valorFixo = valorFixoDoMes?.call(mes);
+  if (valorFixo != null) {
+    return TotalMensal(mes: mes, total: valorFixo);
+  }
+
   final total = gastos
       .where((g) => mesmoMesEAno(g.criadoEm, mes))
       .fold<double>(0, (soma, g) => soma + g.preco);

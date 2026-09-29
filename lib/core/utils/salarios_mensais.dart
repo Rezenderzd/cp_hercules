@@ -5,6 +5,7 @@ List<SalarioMensal> salarioPorMes(
   int quantidadeMeses = 6,
   DateTime? agora,
   double? salarioAtual,
+  double? Function(DateTime mes)? valorFixoDoMes,
 }) {
   final referencia = agora ?? DateTime.now();
   final porMes = <String, double>{
@@ -18,7 +19,11 @@ List<SalarioMensal> salarioPorMes(
     final mes = DateTime(referencia.year, referencia.month - indice);
     final ehMesAtual = indice == 0;
 
-    if (ehMesAtual && salarioAtual != null) {
+    final valorFixo = valorFixoDoMes?.call(mes);
+
+    if (valorFixo != null) {
+      ultimoConhecido = valorFixo;
+    } else if (ehMesAtual && salarioAtual != null) {
       ultimoConhecido = salarioAtual;
     } else {
       final valorDoMes = porMes[_chave(mes)];

@@ -375,7 +375,7 @@ void main() {
 
     await tester.enterText(
         find.widgetWithText(TextField, 'Nome do gasto'), 'Aluguel');
-    await tester.enterText(find.widgetWithText(TextField, 'Preço'), '500');
+    await tester.enterText(find.widgetWithText(TextField, 'Preço'), '537');
     await tester.tap(find.widgetWithText(ElevatedButton, 'Adicionar Gasto'));
     await tester.pumpAndSettle();
 
@@ -384,10 +384,13 @@ void main() {
 
     final mesAtual = rotuloMesPorExtenso(DateTime.now());
     expect(find.text('$mesAtual (em andamento)'), findsOneWidget);
-    expect(find.text('R\$ 500,00'), findsOneWidget);
+    expect(find.descendant(
+        of: find.byKey(const Key('grafico_gastos')),
+        matching: find.text('R\$ 537,00'),
+      ), findsOneWidget);
   });
 
-  testWidgets('Painel soma os gastos do mesmo mês e mostra R\$ 0,00 nos meses sem gasto',
+  testWidgets('Painel soma os gastos do mesmo mês',
       (WidgetTester tester) async {
     usarTelaGrande(tester);
     await tester.pumpWidget(criarApp());
@@ -408,14 +411,10 @@ void main() {
     await tester.tap(find.text('Painel'));
     await tester.pumpAndSettle();
 
-    expect(find.text('R\$ 200,00'), findsOneWidget);
-    expect(
-      find.descendant(
+    expect(find.descendant(
         of: find.byKey(const Key('grafico_gastos')),
-        matching: find.text('R\$ 0,00'),
-      ),
-      findsNWidgets(5),
-    );
+        matching: find.text('R\$ 200,00'),
+      ), findsOneWidget);
   });
 
   testWidgets('Editar um gasto do mês atual atualiza o total no Painel',
@@ -443,7 +442,10 @@ void main() {
     await tester.tap(find.text('Painel'));
     await tester.pumpAndSettle();
 
-    expect(find.text('R\$ 650,00'), findsOneWidget);
+    expect(find.descendant(
+        of: find.byKey(const Key('grafico_gastos')),
+        matching: find.text('R\$ 650,00'),
+      ), findsOneWidget);
   });
 
   testWidgets('Home mostra o mês atual acima da lista de gastos',
@@ -462,22 +464,18 @@ void main() {
     await tester.pumpWidget(criarApp());
     await entrarComoAna(tester);
 
-    await tester.enterText(find.widgetWithText(TextField, 'Salário'), '2000');
+    await tester.enterText(find.widgetWithText(TextField, 'Salário'), '2345');
     await tester.tap(find.widgetWithText(ElevatedButton, 'Salvar Salário'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Painel'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Salário por mês'), findsOneWidget);
-    expect(
-      find.descendant(
+    expect(find.text('Patrimônio por mês'), findsOneWidget);
+    expect(find.descendant(
         of: find.byKey(const Key('grafico_salarios')),
-        matching: find.text('R\$ 2.000,00'),
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('+R\$ 2.000,00'), findsOneWidget);
+        matching: find.text('R\$ 2.345,00'),
+      ), findsOneWidget);
   });
 
   testWidgets('Sem histórico salvo, o mês atual usa o salário atual do usuário',
@@ -486,7 +484,7 @@ void main() {
     await tester.pumpWidget(criarApp(repositorio: _RepositorioSemHistorico()));
     await entrarComoAna(tester);
 
-    await tester.enterText(find.widgetWithText(TextField, 'Salário'), '3000');
+    await tester.enterText(find.widgetWithText(TextField, 'Salário'), '3150');
     await tester.tap(find.widgetWithText(ElevatedButton, 'Salvar Salário'));
     await tester.pumpAndSettle();
 
@@ -498,7 +496,7 @@ void main() {
     expect(
       find.descendant(
         of: find.byKey(const Key('grafico_salarios')),
-        matching: find.text('R\$ 3.000,00'),
+        matching: find.text('R\$ 3.150,00'),
       ),
       findsOneWidget,
     );
@@ -510,11 +508,11 @@ void main() {
     await tester.pumpWidget(criarApp());
     await entrarComoAna(tester);
 
-    await tester.enterText(find.widgetWithText(TextField, 'Salário'), '2000');
+    await tester.enterText(find.widgetWithText(TextField, 'Salário'), '2410');
     await tester.tap(find.widgetWithText(ElevatedButton, 'Salvar Salário'));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.widgetWithText(TextField, 'Salário'), '2500');
+    await tester.enterText(find.widgetWithText(TextField, 'Salário'), '2650');
     await tester.tap(find.widgetWithText(ElevatedButton, 'Salvar Salário'));
     await tester.pumpAndSettle();
 
@@ -524,11 +522,11 @@ void main() {
     expect(
       find.descendant(
         of: find.byKey(const Key('grafico_salarios')),
-        matching: find.text('R\$ 2.500,00'),
+        matching: find.text('R\$ 2.650,00'),
       ),
       findsOneWidget,
     );
-    expect(find.text('R\$ 2.000,00'), findsNothing);
+    expect(find.text('R\$ 2.410,00'), findsNothing);
   });
 
   testWidgets('Sair leva de volta ao login', (WidgetTester tester) async {

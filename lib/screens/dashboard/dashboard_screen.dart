@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/zena_cores.dart';
 import '../../core/utils/gastos_mensais.dart';
 import '../../core/utils/moeda.dart';
+import '../../data/historico_mock.dart';
 import '../../models/gasto.dart';
 import '../../models/salario_mensal.dart';
 import '../../services/financas_repository.dart';
@@ -141,6 +142,7 @@ class _GraficoGastosMensais extends StatelessWidget {
       gastos,
       quantidadeMeses: _quantidadeMeses,
       agora: agora,
+      valorFixoDoMes: gastoMockDoMes,
     );
     final maiorValor =
         totais.fold<double>(0, (m, t) => t.total > m ? t.total : m);
@@ -160,6 +162,17 @@ class _GraficoGastosMensais extends StatelessWidget {
           textAlign: TextAlign.center,
           style: textTheme.bodySmall?.copyWith(color: cores.textoSecundario),
         ),
+        if (totais.any((m) => ehMesMockado(m.mes))) ...[
+          const SizedBox(height: 4),
+          Text(
+            'Meses antes de ${rotuloMesPorExtenso(inicioDadosReais)} mostram valores de exemplo.',
+            textAlign: TextAlign.center,
+            style: textTheme.bodySmall?.copyWith(
+              color: cores.textoSecundario,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         SizedBox(
           height: 260,

@@ -6,6 +6,7 @@ import '../core/theme/zena_cores.dart';
 import '../core/utils/gastos_mensais.dart';
 import '../core/utils/moeda.dart';
 import '../core/utils/salarios_mensais.dart';
+import '../data/historico_mock.dart';
 import '../models/salario_mensal.dart';
 
 class GraficoSalariosMensais extends StatelessWidget {
@@ -30,6 +31,7 @@ class GraficoSalariosMensais extends StatelessWidget {
       quantidadeMeses: quantidadeMeses,
       agora: agora,
       salarioAtual: salarioAtual,
+      valorFixoDoMes: patrimonioMockDoMes,
     );
     final maiorValor = meses.fold<double>(0, (m, s) => s.valor > m ? s.valor : m);
     final tetoEixoY = maiorValor <= 0 ? 100.0 : maiorValor * 1.2;
@@ -48,6 +50,17 @@ class GraficoSalariosMensais extends StatelessWidget {
           textAlign: TextAlign.center,
           style: textTheme.bodySmall?.copyWith(color: cores.textoSecundario),
         ),
+        if (meses.any((m) => ehMesMockado(m.mes))) ...[
+          const SizedBox(height: 4),
+          Text(
+            'Meses antes de ${rotuloMesPorExtenso(inicioDadosReais)} mostram valores de exemplo.',
+            textAlign: TextAlign.center,
+            style: textTheme.bodySmall?.copyWith(
+              color: cores.textoSecundario,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         SizedBox(
           height: 260,
