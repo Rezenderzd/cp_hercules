@@ -1,38 +1,44 @@
-final DateTime inicioDadosReais = DateTime(2026, 9);
-
-const Map<String, double> _gastosMock = {
-  '2026-1': 1350,
-  '2026-2': 980,
-  '2026-3': 1120,
-  '2026-4': 870,
-  '2026-5': 1040,
-  '2026-6': 760,
-  '2026-7': 910,
-  '2026-8': 500,
+const Map<int, double> _gastosMock = {
+  1: 1350,
+  2: 980,
+  3: 1120,
+  4: 870,
+  5: 1040,
+  6: 760,
+  7: 910,
+  8: 500,
+  9: 640,
+  10: 1180,
+  11: 890,
+  12: 1420,
 };
 
-const Map<String, double> _patrimonioMock = {
-  '2026-1': 1800,
-  '2026-2': 1800,
-  '2026-3': 1900,
-  '2026-4': 1900,
-  '2026-5': 2000,
-  '2026-6': 2000,
-  '2026-7': 2100,
-  '2026-8': 2100,
+const Map<int, double> _patrimonioMock = {
+  1: 1800,
+  2: 1800,
+  3: 1900,
+  4: 1900,
+  5: 2000,
+  6: 2000,
+  7: 2100,
+  8: 2100,
+  9: 2200,
+  10: 2200,
+  11: 2300,
+  12: 2300,
 };
 
-bool ehMesMockado(DateTime mes) =>
-    DateTime(mes.year, mes.month).isBefore(inicioDadosReais);
+DateTime inicioDoMes(DateTime data) => DateTime(data.year, data.month);
 
-double? gastoMockDoMes(DateTime mes) {
-  if (!ehMesMockado(mes)) return null;
-  return _gastosMock[_chave(mes)] ?? 0;
+bool ehMesMockado(DateTime mes, DateTime contaCriadaEm) =>
+    inicioDoMes(mes).isBefore(inicioDoMes(contaCriadaEm));
+
+double? gastoMockDoMes(DateTime mes, DateTime contaCriadaEm) {
+  if (!ehMesMockado(mes, contaCriadaEm)) return null;
+  return _gastosMock[mes.month];
 }
 
-double? patrimonioMockDoMes(DateTime mes) {
-  if (!ehMesMockado(mes)) return null;
-  return _patrimonioMock[_chave(mes)] ?? 0;
+double? patrimonioMockDoMes(DateTime mes, DateTime contaCriadaEm) {
+  if (!ehMesMockado(mes, contaCriadaEm)) return null;
+  return _patrimonioMock[mes.month];
 }
-
-String _chave(DateTime mes) => '${mes.year}-${mes.month}';

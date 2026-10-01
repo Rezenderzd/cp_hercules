@@ -14,8 +14,13 @@ import '../../widgets/grafico_salarios_mensais.dart';
 
 class DashboardScreen extends StatefulWidget {
   final FinancasRepository financasRepository;
+  final DateTime contaCriadaEm;
 
-  const DashboardScreen({super.key, required this.financasRepository});
+  const DashboardScreen({
+    super.key,
+    required this.financasRepository,
+    required this.contaCriadaEm,
+  });
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -112,6 +117,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _GraficoGastosMensais(
           key: const Key('grafico_gastos'),
           gastos: _gastos,
+          contaCriadaEm: widget.contaCriadaEm,
         ),
         const SizedBox(height: 64),
         const Divider(),
@@ -120,6 +126,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           key: const Key('grafico_salarios'),
           historico: _historicoSalarios,
           salarioAtual: _salarioAtual,
+          contaCriadaEm: widget.contaCriadaEm,
         ),
       ],
     );
@@ -128,8 +135,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
 class _GraficoGastosMensais extends StatelessWidget {
   final List<Gasto> gastos;
+  final DateTime contaCriadaEm;
 
-  const _GraficoGastosMensais({super.key, required this.gastos});
+  const _GraficoGastosMensais({
+    super.key,
+    required this.gastos,
+    required this.contaCriadaEm,
+  });
 
   static const _quantidadeMeses = 6;
 
@@ -142,7 +154,7 @@ class _GraficoGastosMensais extends StatelessWidget {
       gastos,
       quantidadeMeses: _quantidadeMeses,
       agora: agora,
-      valorFixoDoMes: gastoMockDoMes,
+      valorFixoDoMes: (mes) => gastoMockDoMes(mes, contaCriadaEm),
     );
     final maiorValor =
         totais.fold<double>(0, (m, t) => t.total > m ? t.total : m);
@@ -162,10 +174,10 @@ class _GraficoGastosMensais extends StatelessWidget {
           textAlign: TextAlign.center,
           style: textTheme.bodySmall?.copyWith(color: cores.textoSecundario),
         ),
-        if (totais.any((m) => ehMesMockado(m.mes))) ...[
+        if (totais.any((m) => ehMesMockado(m.mes, contaCriadaEm))) ...[
           const SizedBox(height: 4),
           Text(
-            'Meses antes de ${rotuloMesPorExtenso(inicioDadosReais)} mostram valores de exemplo.',
+            'Meses antes da criação da sua conta (${rotuloMesPorExtenso(contaCriadaEm)}) mostram valores de exemplo.',
             textAlign: TextAlign.center,
             style: textTheme.bodySmall?.copyWith(
               color: cores.textoSecundario,

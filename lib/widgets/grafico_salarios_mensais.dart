@@ -12,12 +12,14 @@ import '../models/salario_mensal.dart';
 class GraficoSalariosMensais extends StatelessWidget {
   final List<SalarioMensal> historico;
   final double salarioAtual;
+  final DateTime contaCriadaEm;
   final int quantidadeMeses;
 
   const GraficoSalariosMensais({
     super.key,
     required this.historico,
     required this.salarioAtual,
+    required this.contaCriadaEm,
     this.quantidadeMeses = 6,
   });
 
@@ -31,7 +33,7 @@ class GraficoSalariosMensais extends StatelessWidget {
       quantidadeMeses: quantidadeMeses,
       agora: agora,
       salarioAtual: salarioAtual,
-      valorFixoDoMes: patrimonioMockDoMes,
+      valorFixoDoMes: (mes) => patrimonioMockDoMes(mes, contaCriadaEm),
     );
     final maiorValor = meses.fold<double>(0, (m, s) => s.valor > m ? s.valor : m);
     final tetoEixoY = maiorValor <= 0 ? 100.0 : maiorValor * 1.2;
@@ -50,10 +52,10 @@ class GraficoSalariosMensais extends StatelessWidget {
           textAlign: TextAlign.center,
           style: textTheme.bodySmall?.copyWith(color: cores.textoSecundario),
         ),
-        if (meses.any((m) => ehMesMockado(m.mes))) ...[
+        if (meses.any((m) => ehMesMockado(m.mes, contaCriadaEm))) ...[
           const SizedBox(height: 4),
           Text(
-            'Meses antes de ${rotuloMesPorExtenso(inicioDadosReais)} mostram valores de exemplo.',
+            'Meses antes da criação da sua conta (${rotuloMesPorExtenso(contaCriadaEm)}) mostram valores de exemplo.',
             textAlign: TextAlign.center,
             style: textTheme.bodySmall?.copyWith(
               color: cores.textoSecundario,

@@ -24,6 +24,13 @@ class SupabaseAuthService implements AuthService {
   }
 
   @override
+  DateTime? get contaCriadaEm {
+    final usuario = _client.auth.currentUser;
+    if (usuario == null) return null;
+    return DateTime.tryParse(usuario.createdAt)?.toLocal();
+  }
+
+  @override
   Future<void> entrar({required String email, required String senha}) async {
     try {
       await _client.auth.signInWithPassword(email: email, password: senha);

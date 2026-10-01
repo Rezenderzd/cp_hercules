@@ -35,7 +35,10 @@ class _MainScreenState extends State<MainScreen> {
       financasRepository: widget.financasRepository,
     ),
     const InvestimentosScreen(),
-    DashboardScreen(financasRepository: widget.financasRepository),
+    DashboardScreen(
+      financasRepository: widget.financasRepository,
+      contaCriadaEm: widget.authService.contaCriadaEm ?? DateTime.now(),
+    ),
   ];
 
   Future<void> _sair() async {

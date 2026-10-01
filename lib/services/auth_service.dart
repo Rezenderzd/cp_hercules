@@ -12,6 +12,8 @@ abstract class AuthService {
 
   String? get nomeUsuario;
 
+  DateTime? get contaCriadaEm;
+
   Future<void> entrar({required String email, required String senha});
 
   Future<void> criarConta({

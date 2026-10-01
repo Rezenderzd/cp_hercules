@@ -6,6 +6,7 @@ class MockAuthService implements AuthService {
 
   final Duration latencia;
   bool _logado = false;
+  DateTime? _contaCriadaEm;
   String? _nome;
 
   @override
@@ -15,10 +16,14 @@ class MockAuthService implements AuthService {
   String? get nomeUsuario => _nome;
 
   @override
+  DateTime? get contaCriadaEm => _contaCriadaEm;
+
+  @override
   Future<void> entrar({required String email, required String senha}) async {
     await Future<void>.delayed(latencia);
     _logado = true;
     _nome = nomeDoEmail(email);
+    _contaCriadaEm ??= DateTime.now();
   }
 
   @override
@@ -30,11 +35,13 @@ class MockAuthService implements AuthService {
     await Future<void>.delayed(latencia);
     _logado = true;
     _nome = nome.trim().isNotEmpty ? nome.trim() : nomeDoEmail(email);
+    _contaCriadaEm = DateTime.now();
   }
 
   @override
   Future<void> sair() async {
     _logado = false;
     _nome = null;
+    _contaCriadaEm = null;
   }
 }
