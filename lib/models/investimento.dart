@@ -8,32 +8,36 @@ enum RiscoInvestimento {
   final String rotulo;
 }
 
+enum TipoInvestimento { rendaFixa, acao }
+
 class Investimento {
   final String id;
   final String nome;
   final String descricao;
-
-  final double rentabilidadeAnual;
-
+  final TipoInvestimento tipo;
+  final double rentabilidadePct;
   final RiscoInvestimento risco;
-
-  final int chanceDeErroPct;
-
-  final int perdaSeErrarPct;
+  final double chanceDePrejuizoPct;
+  final double maiorQuedaPct;
+  final String? garantia;
+  final String fonte;
 
   const Investimento({
     required this.id,
     required this.nome,
     required this.descricao,
-    required this.rentabilidadeAnual,
+    required this.tipo,
+    required this.rentabilidadePct,
     required this.risco,
-    required this.chanceDeErroPct,
-    required this.perdaSeErrarPct,
+    required this.chanceDePrejuizoPct,
+    required this.maiorQuedaPct,
+    required this.fonte,
+    this.garantia,
   });
 
-  double retornoEm12Meses(double valor) => valor * rentabilidadeAnual / 100;
+  double retornoEm12Meses(double valor) => valor * rentabilidadePct / 100;
 
   double totalEm12Meses(double valor) => valor + retornoEm12Meses(valor);
 
-  double perdaMaxima(double valor) => valor * perdaSeErrarPct / 100;
+  double perdaNaMaiorQueda(double valor) => valor * maiorQuedaPct / 100;
 }

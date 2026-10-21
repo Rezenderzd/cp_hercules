@@ -23,6 +23,10 @@ class InvestimentoCard extends StatelessWidget {
     final inv = investimento;
     final simulando = valor > 0;
 
+    final ehAcao = inv.tipo == TipoInvestimento.acao;
+    final retorno = inv.retornoEm12Meses(valor);
+    final corRetorno = retorno >= 0 ? cores.sucesso : cores.alerta;
+
     return Card(
       color: cores.cartao,
       elevation: 1,
@@ -65,18 +69,25 @@ class InvestimentoCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: _Dado(
-                    rotulo: 'Rentabilidade',
-                    valor: '${formatarPercentual(inv.rentabilidadeAnual)} ao ano',
+                    rotulo: ehAcao ? 'Últimos 12 meses' : 'Rentabilidade',
+                    valor: ehAcao
+                        ? _comSinal(formatarPercentual(inv.rentabilidadePct.abs()), inv.rentabilidadePct)
+                        : '${formatarPercentual(inv.rentabilidadePct)} ao ano',
+                    corValor: ehAcao
+                        ? (inv.rentabilidadePct >= 0 ? cores.sucesso : cores.alerta)
+                        : null,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: _Dado(
-                    rotulo: 'Retorno em 12 meses',
+                    rotulo: ehAcao
+                        ? 'Se repetir os últimos 12 meses'
+                        : 'Retorno em 12 meses',
                     valor: simulando
-                        ? '+ ${formatarReais(inv.retornoEm12Meses(valor))}'
+                        ? _comSinal(formatarReais(retorno.abs()), retorno)
                         : '—',
-                    corValor: simulando ? cores.sucesso : null,
+                    corValor: simulando ? corRetorno : null,
                     complemento: simulando
                         ? 'Total: ${formatarReais(inv.totalEm12Meses(valor))}'
                         : null,
@@ -86,12 +97,12 @@ class InvestimentoCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Chance de dar errado: ${inv.chanceDeErroPct}%',
+              'Chance de prejuízo: ${formatarPercentual(inv.chanceDePrejuizoPct)}',
               style: textTheme.bodySmall,
             ),
             const SizedBox(height: 6),
             LinearProgressIndicator(
-              value: inv.chanceDeErroPct / 100,
+              value: inv.chanceDePrejuizoPct / 100,
               minHeight: 6,
               borderRadius: BorderRadius.circular(3),
               color: corDoRisco(inv.risco),
@@ -99,19 +110,38 @@ class InvestimentoCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              simulando
-                  ? 'Se der errado: perda de até '
-                      '${formatarReais(inv.perdaMaxima(valor))} '
-                      '(${inv.perdaSeErrarPct}%)'
-                  : 'Se der errado: perda de até '
-                      '${inv.perdaSeErrarPct}% do valor investido',
+              ehAcao
+                  ? 'Em ${formatarPercentual(inv.chanceDePrejuizoPct)} dos dias do último ano, '
+                      'quem comprou está no prejuízo hoje.'
+                  : 'Rende todo dia, sem risco de o valor investido cair.',
               style: textTheme.bodySmall?.copyWith(color: cores.textoSecundario),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              ehAcao
+                  ? (simulando
+                      ? 'Maior queda nos últimos 12 meses: ${formatarPercentual(inv.maiorQuedaPct)} '
+                          '(${formatarReais(inv.perdaNaMaiorQueda(valor))} sobre o valor simulado)'
+                      : 'Maior queda nos últimos 12 meses: ${formatarPercentual(inv.maiorQuedaPct)}')
+                  : (inv.garantia ?? ''),
+              style: textTheme.bodySmall?.copyWith(color: cores.textoSecundario),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Fonte: ${inv.fonte}',
+              style: textTheme.bodySmall?.copyWith(
+                color: cores.textoSecundario,
+                fontStyle: FontStyle.italic,
+              ),
             ),
           ],
         ),
       ),
     );
   }
+
+  String _comSinal(String texto, double numero) =>
+      numero >= 0 ? '+ $texto' : '- $texto';
 }
 
 class _Dado extends StatelessWidget {

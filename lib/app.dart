@@ -8,16 +8,19 @@ import 'screens/login/login_screen.dart';
 import 'screens/main/main_screen.dart';
 import 'services/auth_service.dart';
 import 'services/financas_repository.dart';
+import 'services/investimentos_service.dart';
 
 class ZenaApp extends StatelessWidget {
   final AuthService authService;
   final FinancasRepository financasRepository;
+  final InvestimentosService investimentosService;
   final ThemeController themeController;
 
   const ZenaApp({
     super.key,
     required this.authService,
     required this.financasRepository,
+    required this.investimentosService,
     required this.themeController,
   });
 
@@ -46,6 +49,7 @@ class ZenaApp extends StatelessWidget {
             AppRoutes.home: (context) => MainScreen(
                   authService: authService,
                   financasRepository: financasRepository,
+                  investimentosService: investimentosService,
                   themeController: themeController,
                 ),
           },

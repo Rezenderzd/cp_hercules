@@ -5,6 +5,7 @@ import '../../core/theme/theme_controller.dart';
 import '../../core/theme/zena_cores.dart';
 import '../../services/auth_service.dart';
 import '../../services/financas_repository.dart';
+import '../../services/investimentos_service.dart';
 import '../../widgets/botao_tema.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../home/home_screen.dart';
@@ -13,12 +14,14 @@ import '../investimentos/investimentos_screen.dart';
 class MainScreen extends StatefulWidget {
   final AuthService authService;
   final FinancasRepository financasRepository;
+  final InvestimentosService investimentosService;
   final ThemeController themeController;
 
   const MainScreen({
     super.key,
     required this.authService,
     required this.financasRepository,
+    required this.investimentosService,
     required this.themeController,
   });
 
@@ -34,7 +37,7 @@ class _MainScreenState extends State<MainScreen> {
       authService: widget.authService,
       financasRepository: widget.financasRepository,
     ),
-    const InvestimentosScreen(),
+    InvestimentosScreen(service: widget.investimentosService),
     DashboardScreen(
       financasRepository: widget.financasRepository,
       contaCriadaEm: widget.authService.contaCriadaEm ?? DateTime.now(),

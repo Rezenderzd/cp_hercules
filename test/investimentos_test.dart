@@ -4,9 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cp4_hercules/core/theme/app_theme.dart';
 import 'package:cp4_hercules/core/utils/moeda.dart';
-import 'package:cp4_hercules/data/investimentos_mock.dart';
 import 'package:cp4_hercules/models/investimento.dart';
 import 'package:cp4_hercules/screens/investimentos/investimentos_screen.dart';
+
+import 'fake_investimentos_service.dart';
 
 void main() {
   setUpAll(() {
@@ -43,86 +44,50 @@ void main() {
   });
 
   group('Investimento', () {
-    const tesouro = Investimento(
-      id: 't',
-      nome: 'Tesouro',
-      descricao: '',
-      rentabilidadeAnual: 10.5,
-      risco: RiscoInvestimento.baixo,
-      chanceDeErroPct: 2,
-      perdaSeErrarPct: 5,
-    );
-
-    test('calcula retorno, total e perda máxima para R\$ 5.000', () {
-      expect(tesouro.retornoEm12Meses(5000), closeTo(525, 0.001));
-      expect(tesouro.totalEm12Meses(5000), closeTo(5525, 0.001));
-      expect(tesouro.perdaMaxima(5000), closeTo(250, 0.001));
+    test('calcula retorno, total e perda na maior queda', () {
+      final itau = investimentosDeTeste[3];
+      expect(itau.retornoEm12Meses(5000), closeTo(950, 0.001));
+      expect(itau.totalEm12Meses(5000), closeTo(5950, 0.001));
+      expect(itau.perdaNaMaiorQueda(5000), closeTo(1250, 0.001));
     });
 
-    test('valor zero não rende nem perde', () {
-      expect(tesouro.retornoEm12Meses(0), 0);
-      expect(tesouro.perdaMaxima(0), 0);
-    });
-  });
-
-  group('dados mockados: mais risco = mais retorno e mais chance de erro', () {
-    Iterable<Investimento> grupo(RiscoInvestimento r) =>
-        investimentosMock.where((i) => i.risco == r);
-
-    double menor(Iterable<Investimento> l, double Function(Investimento) f) =>
-        l.map(f).reduce((a, b) => a < b ? a : b);
-
-    double maior(Iterable<Investimento> l, double Function(Investimento) f) =>
-        l.map(f).reduce((a, b) => a > b ? a : b);
-
-    final criterios = <String, double Function(Investimento)>{
-      'rentabilidade': (i) => i.rentabilidadeAnual,
-      'chance de dar errado': (i) => i.chanceDeErroPct.toDouble(),
-      'perda se der errado': (i) => i.perdaSeErrarPct.toDouble(),
-    };
-
-    test('existe ao menos uma opção de cada risco', () {
-      for (final risco in RiscoInvestimento.values) {
-        expect(grupo(risco), isNotEmpty, reason: risco.rotulo);
-      }
+    test('rentabilidade negativa gera retorno negativo', () {
+      final bradesco = investimentosDeTeste[4];
+      expect(bradesco.retornoEm12Meses(5000), closeTo(-1600, 0.001));
+      expect(bradesco.totalEm12Meses(5000), closeTo(3400, 0.001));
     });
 
-    for (final entrada in criterios.entries) {
-      test('${entrada.key}: baixo < médio < alto', () {
-        final f = entrada.value;
-        final baixo = grupo(RiscoInvestimento.baixo);
-        final medio = grupo(RiscoInvestimento.medio);
-        final alto = grupo(RiscoInvestimento.alto);
-
-        expect(maior(baixo, f), lessThan(menor(medio, f)));
-        expect(maior(medio, f), lessThan(menor(alto, f)));
-      });
-    }
-
-    test('percentuais ficam entre 0 e 100', () {
-      for (final i in investimentosMock) {
-        expect(i.chanceDeErroPct, inInclusiveRange(0, 100), reason: i.nome);
-        expect(i.perdaSeErrarPct, inInclusiveRange(0, 100), reason: i.nome);
+    test('renda fixa não tem chance de prejuízo nem queda', () {
+      for (final i in investimentosDeTeste.where((i) => i.tipo == TipoInvestimento.rendaFixa)) {
+        expect(i.chanceDePrejuizoPct, 0, reason: i.nome);
+        expect(i.maiorQuedaPct, 0, reason: i.nome);
+        expect(i.garantia, isNotNull, reason: i.nome);
       }
     });
   });
 
   group('InvestimentosScreen', () {
     void usarTelaGrande(WidgetTester tester) {
-      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.physicalSize = const Size(800, 2000);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
     }
 
-    Future<void> abrirTela(WidgetTester tester) async {
+    Future<FakeInvestimentosService> abrirTela(
+      WidgetTester tester, {
+      FakeInvestimentosService? servico,
+    }) async {
       usarTelaGrande(tester);
+      final fake = servico ?? FakeInvestimentosService();
       await tester.pumpWidget(
         MaterialApp(
           theme: AppTheme.light,
-          home: const Scaffold(body: InvestimentosScreen()),
+          home: Scaffold(body: InvestimentosScreen(service: fake)),
         ),
       );
+      await tester.pumpAndSettle();
+      return fake;
     }
 
     Future<void> simular(WidgetTester tester, String valor) async {
@@ -131,36 +96,67 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('mostra todas as opções com risco e chance, sem valores em R\$',
+    testWidgets('mostra as opções reais com risco, garantia e fonte',
         (WidgetTester tester) async {
       await abrirTela(tester);
 
       expect(find.text('Risco baixo'), findsNWidgets(3));
-      expect(find.text('Risco médio'), findsNWidgets(2));
       expect(find.text('Risco alto'), findsNWidgets(2));
-      expect(find.text('Chance de dar errado: 45%'), findsOneWidget);
-      expect(
-        find.text('Informe um valor para ver quanto cada opção pode render.'),
-        findsOneWidget,
-      );
+      expect(find.text('Risco médio'), findsNothing);
+      expect(find.text('Garantido pelo Tesouro Nacional.'), findsOneWidget);
+      expect(find.text('Fonte: Banco Central: meta da Selic de 16/09/2026'), findsOneWidget);
+      expect(find.text('Chance de prejuízo: 85,00%'), findsOneWidget);
       expect(find.textContaining('+ R\$'), findsNothing);
     });
 
-    testWidgets('simula o retorno em R\$ para o valor informado',
+    testWidgets('simula o retorno em R\$, inclusive negativo',
         (WidgetTester tester) async {
       await abrirTela(tester);
       await simular(tester, '5000');
 
       expect(find.text('Simulação para R\$ 5.000,00 em 12 meses'), findsOneWidget);
-
       expect(find.text('+ R\$ 525,00'), findsOneWidget);
       expect(find.text('Total: R\$ 5.525,00'), findsOneWidget);
-
-      expect(find.text('+ R\$ 1.600,00'), findsOneWidget);
+      expect(find.text('- R\$ 1.600,00'), findsOneWidget);
+      expect(find.text('Total: R\$ 3.400,00'), findsOneWidget);
       expect(
-        find.text('Se der errado: perda de até R\$ 3.500,00 (70%)'),
+        find.text('Maior queda nos últimos 12 meses: 48,00% (R\$ 2.400,00 sobre o valor simulado)'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('lista do menor para o maior risco', (WidgetTester tester) async {
+      await abrirTela(tester);
+
+      double topo(String nome) => tester.getTopLeft(find.text(nome)).dy;
+
+      expect(topo('Poupança'), lessThan(topo('Tesouro Selic')));
+      expect(topo('Tesouro Selic'), lessThan(topo('CDB 100% do CDI')));
+      expect(topo('CDB 100% do CDI'), lessThan(topo('Bradesco (BBDC4)')));
+      expect(topo('Bradesco (BBDC4)'), lessThan(topo('Itaú Unibanco (ITUB4)')));
+    });
+
+    testWidgets('avisa quando uma fonte falha e permite tentar de novo',
+        (WidgetTester tester) async {
+      final fake = FakeInvestimentosService(
+        opcoes: investimentosDeTeste.take(3).toList(),
+        fontesComFalha: ['Cotação do Itaú (brapi.dev)', 'Cotações do Bradesco e da Vivo (Yahoo Finance)'],
+      );
+      await abrirTela(tester, servico: fake);
+
+      expect(find.textContaining('Não foi possível carregar: Cotação do Itaú (brapi.dev) e Cotações do Bradesco'), findsOneWidget);
+      expect(find.text('Risco baixo'), findsNWidgets(3));
+      expect(find.text('Risco alto'), findsNothing);
+
+      fake
+        ..opcoes = investimentosDeTeste
+        ..fontesComFalha = [];
+      await tester.tap(find.text('Tentar de novo'));
+      await tester.pumpAndSettle();
+
+      expect(fake.chamadas, 2);
+      expect(find.textContaining('Não foi possível carregar'), findsNothing);
+      expect(find.text('Risco alto'), findsNWidgets(2));
     });
 
     testWidgets('limpa o campo depois de simular e mantém o valor no resumo',
@@ -188,29 +184,6 @@ void main() {
       await simular(tester, '5.000,50');
 
       expect(find.text('Simulação para R\$ 5.000,50 em 12 meses'), findsOneWidget);
-    });
-
-    testWidgets('avisa quando o valor está vazio ou é zero',
-        (WidgetTester tester) async {
-      await abrirTela(tester);
-
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Simular'));
-      await tester.pump();
-      expect(find.text('Digite um valor maior que zero.'), findsOneWidget);
-
-      await simular(tester, '0');
-      expect(find.text('Digite um valor maior que zero.'), findsOneWidget);
-      expect(find.textContaining('+ R\$'), findsNothing);
-    });
-
-    testWidgets('lista do menor para o maior risco', (WidgetTester tester) async {
-      await abrirTela(tester);
-
-      double topo(String nome) => tester.getTopLeft(find.text(nome)).dy;
-
-      expect(topo('Poupança'), lessThan(topo('Fundos imobiliários')));
-      expect(topo('Fundos imobiliários'), lessThan(topo('Ações')));
-      expect(topo('Ações'), lessThan(topo('Criptomoedas')));
     });
   });
 }

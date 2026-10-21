@@ -16,6 +16,8 @@ import 'package:cp4_hercules/services/mock_financas_repository.dart';
 import 'package:cp4_hercules/widgets/boas_vindas_header.dart';
 import 'package:cp4_hercules/widgets/lista_gastos_display.dart';
 
+import 'fake_investimentos_service.dart';
+
 class _RepositorioComFalha extends MockFinancasRepository {
   bool falhar = true;
 
@@ -45,6 +47,7 @@ void main() {
     return ZenaApp(
       authService: MockAuthService(latencia: Duration.zero),
       financasRepository: repositorio ?? MockFinancasRepository(),
+      investimentosService: FakeInvestimentosService(),
       themeController: ThemeController(modoInicial: modo),
     );
   }
