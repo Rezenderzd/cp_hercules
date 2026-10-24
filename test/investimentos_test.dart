@@ -105,8 +105,10 @@ void main() {
       expect(find.text('Risco médio'), findsNothing);
       expect(find.text('Garantido pelo Tesouro Nacional.'), findsOneWidget);
       expect(find.text('Fonte: Banco Central: meta da Selic de 16/09/2026'), findsOneWidget);
-      expect(find.text('Chance de prejuízo: 85,00%'), findsOneWidget);
-      expect(find.textContaining('+ R\$'), findsNothing);
+      expect(find.text('Dias do último ano com prejuízo hoje: 85,00%'), findsOneWidget);
+      expect(find.text('Exemplo com R\$ 1.000,00'), findsNWidgets(5));
+      expect(find.text('+ R\$ 105,00'), findsOneWidget);
+      expect(find.text('- R\$ 320,00'), findsOneWidget);
     });
 
     testWidgets('simula o retorno em R\$, inclusive negativo',
@@ -115,6 +117,7 @@ void main() {
       await simular(tester, '5000');
 
       expect(find.text('Simulação para R\$ 5.000,00 em 12 meses'), findsOneWidget);
+      expect(find.text('Exemplo com R\$ 1.000,00'), findsNothing);
       expect(find.text('+ R\$ 525,00'), findsOneWidget);
       expect(find.text('Total: R\$ 5.525,00'), findsOneWidget);
       expect(find.text('- R\$ 1.600,00'), findsOneWidget);

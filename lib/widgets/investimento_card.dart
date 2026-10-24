@@ -7,6 +7,8 @@ import '../models/investimento.dart';
 import 'risco_chip.dart';
 
 class InvestimentoCard extends StatelessWidget {
+  static const double valorExemplo = 1000;
+
   final Investimento investimento;
   final double valor;
 
@@ -22,9 +24,10 @@ class InvestimentoCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final inv = investimento;
     final simulando = valor > 0;
+    final valorUsado = simulando ? valor : valorExemplo;
 
     final ehAcao = inv.tipo == TipoInvestimento.acao;
-    final retorno = inv.retornoEm12Meses(valor);
+    final retorno = inv.retornoEm12Meses(valorUsado);
     final corRetorno = retorno >= 0 ? cores.sucesso : cores.alerta;
 
     return Card(
@@ -84,20 +87,18 @@ class InvestimentoCard extends StatelessWidget {
                     rotulo: ehAcao
                         ? 'Se repetir os últimos 12 meses'
                         : 'Retorno em 12 meses',
-                    valor: simulando
-                        ? _comSinal(formatarReais(retorno.abs()), retorno)
-                        : '—',
-                    corValor: simulando ? corRetorno : null,
+                    valor: _comSinal(formatarReais(retorno.abs()), retorno),
+                    corValor: corRetorno,
                     complemento: simulando
                         ? 'Total: ${formatarReais(inv.totalEm12Meses(valor))}'
-                        : null,
+                        : 'Exemplo com ${formatarReais(valorExemplo)}',
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
             Text(
-              'Chance de prejuízo: ${formatarPercentual(inv.chanceDePrejuizoPct)}',
+              'Dias do último ano com prejuízo hoje: ${formatarPercentual(inv.chanceDePrejuizoPct)}',
               style: textTheme.bodySmall,
             ),
             const SizedBox(height: 6),
